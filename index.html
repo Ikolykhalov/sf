@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Погода в Сан-Франциско</title>
+    <style>
+        /* Подключаем современные шрифты */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+        /* Основные стили */
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 90%;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .weather {
+            font-size: 20px;
+            margin: 20px 0;
+            color: #f8f8f8;
+        }
+
+        .recommendation {
+            font-size: 18px;
+            margin-top: 20px;
+            color: #fdfdfd;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 28px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            background: #ff7f50;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            background: #ff6347;
+            transform: translateY(-3px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Как там погода, Сан-Франциско?</h1>
+        <button class="btn" id="showForecastButton" onclick="displayWeather()">Расскажи мне</button>
+        <div id="weather" class="weather" style="display: none;">
+            <p>Секундочку, сейчас узнаю...</p>
+        </div>
+        <div id="recommendation" class="recommendation" style="display: none;">
+            <p>Дай мне чуть-чуть времени, я скоро вернусь с ответом.</p>
+        </div>
+    </div>
+
+    <script>
+        // Функция для получения данных о погоде
+        async function fetchWeather() {
+            const apiKey = 'c89aa3a865ad4b34a61171800241911'; // Ваш API-ключ WeatherAPI
+            const url = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=San Francisco&lang=ru`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(error);
+                const weatherContainer = document.getElementById('weather');
+                weatherContainer.style.display = 'block';
+                weatherContainer.innerHTML = `<p>Катюша, я не смог узнать погоду... Давай попробуем позже.</p>`;
+                return null;
+            }
+        }
+
+        // Функция для формирования рекомендаций
+        function getRecommendation(temp) {
+            if (temp >= 25) {
+                return "Катюша, на улице тепло и солнечно. Надень что-то лёгкое, возьми шляпу, очки — и наслаждайся.";
+            } else if (temp >= 15) {
+                return "Тепло, но уже не лето. Джинсы и лёгкая куртка подойдут идеально";
+            } else if (temp >= 5) {
+                return "На улице прохладно. Возьми что-то тёплое, шарф и уютный свитер. Пусть тебе будет комфортно.";
+            } else {
+                return "Очень холодно!. Надень всё самое тёплое: шапку, перчатки, шарф. Береги себя, ладно?";
+            }
+        }
+
+        // Функция для отображения данных о погоде
+        async function displayWeather() {
+            const weatherContainer = document.getElementById('weather');
+            const recommendationContainer = document.getElementById('recommendation');
+            const showForecastButton = document.getElementById('showForecastButton');
+
+            // Скрываем кнопку
+            showForecastButton.style.display = 'none';
+
+            // Показываем блоки для данных
+            weatherContainer.style.display = 'block';
+            recommendationContainer.style.display = 'block';
+
+            // Показываем сообщение о загрузке
+            weatherContainer.innerHTML = `<p>Секундочку, сейчас узнаю...</p>`;
+            recommendationContainer.innerHTML = `<p>Дай мне чуть-чуть времени, я скоро вернусь с ответом.</p>`;
+
+            // Загружаем данные
+            const data = await fetchWeather();
+            if (data && data.current) {
+                const temp = data.current.temp_c; // Температура в градусах Цельсия
+                const description = data.current.condition.text; // Описание погоды
+                const recommendation = getRecommendation(temp);
+
+                // Отображение погоды
+                weatherContainer.innerHTML = `
+                    <p>Сейчас там ${temp}°C, ${description.toLowerCase()}.</p>
+                `;
+
+                // Отображение рекомендаций
+                recommendationContainer.innerHTML = `
+                    <p>${recommendation}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
